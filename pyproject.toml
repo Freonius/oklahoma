@@ -1,0 +1,124 @@
+[tool.poetry]
+name = "fsl"
+version = "0.1.0"
+description = ""
+authors = ["Fred Pirani <freonius@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.95.2"
+sqlalchemy = "^2.0.15"
+boto3 = "^1.26.137"
+pydantic = "^1.10.7"
+uvicorn = "^0.22.0"
+alembic = "^1.11.1"
+python-dotenv = "^1.0.0"
+pyyaml = "^6.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.1"
+black = "^23.3.0"
+mypy = "^1.3.0"
+pylint = "^2.17.4"
+interrogate = "^1.5.0"
+pdoc = "^13.1.1"
+boto3-type-annotations = "^0.3.1"
+poethepoet = "^0.20.0"
+coverage-badge = "^1.1.0"
+pre-commit = "^3.3.2"
+pytest-order = "^1.1.0"
+pytest-cov = "^4.0.0"
+sqlalchemy = {extras = ["mypy"], version = "^2.0.15"}
+httpx = {extras = ["http2"], version = "^0.24.1"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+# Tool settings
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov=./src --cov-report=xml:./coverage/report.xml --cov-report=html:./coverage/report"
+testpaths = [
+    "tests",
+]
+
+[tool.pylint]
+ignore = ["tests", "alembic"]
+ignore-paths = ["tests", "alembic"]
+disable = [
+    "too-many-branches",
+    "too-many-statements",
+    "missing-module-docstring",
+]
+ignore-patterns = ["test_.*"]
+fail-under = 9
+
+[tool.mypy]
+modules = ["src"]
+exclude = [
+    "tests/.*\\.py",
+    "migrations/.*.\\.py",
+]
+warn_return_any = true
+warn_unused_configs = true
+no_implicit_optional = true
+# plugins = ["sqlalchemy.ext.mypy.plugin"]
+warn_redundant_casts = true
+warn_unused_ignores = true
+check_untyped_defs = true
+enable_incomplete_feature = ["Unpack"]
+
+# for strict mypy: (this is the tricky one :-))
+# disallow_untyped_defs = true
+
+# [tool.pydantic-mypy]
+# init_forbid_extra = true
+# init_typed = true
+# warn_required_dynamic_aliases = true
+# warn_untyped_fields = true
+
+[[tool.mypy.overrides]]
+no_implicit_reexport = true
+ignore_missing_imports = true
+module = [
+    "boto3.*",
+    "yaml.*",
+    "boto3_type_annotations.*",
+    "jose.*",
+    "passlib.*",
+    "redis.*",
+    "botocore.*",
+    "psycopg2.*",
+    "jinjasql.*",
+    "simplejson.*",
+]
+
+[tool.isort]
+profile = "black"
+src_paths = ["./src", "./test"]
+
+[tool.interrogate]
+ignore-init-method = false
+ignore-init-module = false
+ignore-magic = true
+ignore-semiprivate = true
+ignore-private = true
+ignore-property-decorators = false
+ignore-module = false
+ignore-nested-functions = false
+ignore-nested-classes = true
+ignore-setters = false
+fail-under = 90
+exclude = ["setup.py", "docs", "build", "tests", "alembic"]
+ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
+verbose = 1
+quiet = false
+whitelist-regex = []
+color = true
+omit-covered-files = false
+generate-badge = "."
+badge-format = "svg"

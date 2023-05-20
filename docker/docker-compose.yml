@@ -1,0 +1,29 @@
+version: '3'
+
+volumes: {}
+
+services:
+  mailcatcher:
+    image: jeanberu/mailcatcher
+    ports:
+      - 1025:1025
+      - 1080:1080
+  mailhog:
+    image: mailhog/mailhog
+    logging:
+      driver: 'none' # disable saving logs
+    ports:
+      - 1026:1025 # smtp server
+      - 8025:8025 # web ui
+  aws:
+    image: localstack/localstack
+    ports:
+      - 4566:4566
+      - '4510-4559:4510-4559'
+    volumes:
+      # - ./data/aws:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - COMPOSE_CONVERT_WINDOWS_PATHS=1
+      - VIRTUAL_HOST=aws.local.dev
+      - VIRTUAL_PORT=4566
