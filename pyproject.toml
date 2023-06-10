@@ -16,6 +16,7 @@ alembic = "^1.11.1"
 python-dotenv = "^1.0.0"
 pyyaml = "^6.0"
 inflect = "^6.0.4"
+argparse = "^1.4.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -14,13 +14,14 @@ test:
       servers:
         localhost: http://localhost:8000
   database:
-    upgrade-at-start: true
+    upgrade-at-start: false
   aws:
     secrets:
       database: p
       gollum: l
   security:
-    provider: jwt
+    provider: cognito
+    cognito-pool-id: l
   secrets:
     application:
       MY_ENV: '1'

@@ -1,1 +1,4 @@
-print("Oh, what a beautiful morning!")
+from . import main
+
+if __name__ == "__main__":
+    main()

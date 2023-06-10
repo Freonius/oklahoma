@@ -181,8 +181,8 @@
           "type": "object",
           "required": ["host"],
           "properties": {
-            "host": { "type": "string" },
-            "port": { "type": "integer" }
+            "host": { "type": "string", "default": "localhost" },
+            "port": { "type": "integer", "default": 5672 }
           }
         }
       }
