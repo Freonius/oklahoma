@@ -32,6 +32,8 @@ pytest-order = "^1.1.0"
 pytest-cov = "^4.0.0"
 sqlalchemy = {extras = ["mypy"], version = "^2.0.15"}
 httpx = {extras = ["http2"], version = "^0.24.1"}
+ipykernel = "^6.23.1"
+ruff = "^0.0.272"
 
 [build-system]
 requires = ["poetry-core"]

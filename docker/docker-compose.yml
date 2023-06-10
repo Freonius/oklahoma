@@ -3,18 +3,11 @@ version: '3'
 volumes: {}
 
 services:
-  mailcatcher:
-    image: jeanberu/mailcatcher
+  smtp:
+    image: reachfive/fake-smtp-server
     ports:
       - 1025:1025
       - 1080:1080
-  mailhog:
-    image: mailhog/mailhog
-    logging:
-      driver: 'none' # disable saving logs
-    ports:
-      - 1026:1025 # smtp server
-      - 8025:8025 # web ui
   aws:
     image: localstack/localstack
     ports:
@@ -27,3 +20,19 @@ services:
       - COMPOSE_CONVERT_WINDOWS_PATHS=1
       - VIRTUAL_HOST=aws.local.dev
       - VIRTUAL_PORT=4566
+  # sonarqube-cli:
+  #   image: sonarsource/sonar-scanner-cli
+  #   environment:
+  #     SONAR_HOST_URL: 'http://sonarqube:9000'
+  #     SONAR_SCANNER_OPTS: "-Dsonar.projectKey=${PROJECT_NAME}"
+  #     SONAR_TOKEN: ${SQ_TOKEN}
+  #   volumes:
+  #     - ../.:/usr/src
+  # sonarqube:
+  #   image: sonarqube:9.4-community
+  #   ports:
+  #     - 9500:9000
+  #   volumes:
+  #     - ./sonarqube-data:/opt/sonarqube/data
+  #   environment:
+  #     SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: true

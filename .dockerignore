@@ -176,6 +176,15 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 .vscode
+docs
+tests
+.gitignore
+.gitattributes
 *.ipynb
-alembic
-alembic.ini
+*.md
+coverage
+.git
+.github
+Dockerfile
+docker
+docker-compose.yml
