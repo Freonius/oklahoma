@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=./oklahoma.schema.json
+test:
+  app:
+    name: MyApp
+    port: 8000
+    version: '0.1.0'
+    docker:
+      up: false
+      down: false
+      file: .
+      dash: false
+    openapi:
+      include: true
+      servers:
+        localhost: http://localhost:8000
+  database:
+    upgrade-at-start: true
+  aws:
+    secrets:
+      database: p
+      gollum: l
+  security:
+    provider: jwt
+  secrets:
+    application:
+      MY_ENV: '1'
+  rabbit:
+    host: localhost

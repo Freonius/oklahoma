@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "fsl"
+name = "oklahoma"
 version = "0.1.0"
-description = ""
+description = "A library to make creating, running and managing FastAPI applications easier."
 authors = ["Fred Pirani <freonius@gmail.com>"]
 readme = "README.md"
 
@@ -44,7 +44,7 @@ build-backend = "poetry.core.masonry.api"
 # Tool settings
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov=./src --cov-report=xml:./coverage/report.xml --cov-report=html:./coverage/report"
+addopts = "--cov=./oklahoma --cov-report=xml:./coverage/report.xml --cov-report=html:./coverage/report"
 testpaths = [
     "tests",
 ]
@@ -61,7 +61,7 @@ ignore-patterns = ["test_.*"]
 fail-under = 9
 
 [tool.mypy]
-modules = ["src"]
+modules = ["oklahoma"]
 exclude = [
     "tests/.*\\.py",
     "migrations/.*.\\.py",
@@ -102,7 +102,7 @@ module = [
 
 [tool.isort]
 profile = "black"
-src_paths = ["./src", "./test"]
+src_paths = ["./oklahoma", "./test"]
 
 [tool.interrogate]
 ignore-init-method = false

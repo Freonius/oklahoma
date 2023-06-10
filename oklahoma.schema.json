@@ -1,0 +1,191 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Oklahoma! Standard Library",
+  "uniqueItems": true,
+  "patternProperties": {
+    "^[a-zA-Z0-9._-]+$": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Name of the app",
+              "default": "Oklahoma!"
+            },
+            "port": {
+              "type": "integer",
+              "default": 8000,
+              "description": "Port to expose, default 8000"
+            },
+            "version": {
+              "type": "string",
+              "description": "Version of the app",
+              "default": "0.1.0"
+            },
+            "docker": {
+              "type": "object",
+              "description": "Define some options for docker at start (useful for local development)",
+              "properties": {
+                "up": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Perform a docker compose up at start"
+                },
+                "down": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Perform a docker compose down at shutdown"
+                },
+                "file": {
+                  "type": "string",
+                  "default": ".",
+                  "description": "Where is the docker compose file?"
+                },
+                "dash": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "Use `docker-compose` with the dash instead of `docker compose`"
+                }
+              }
+            },
+            "prod": {
+              "type": "boolean",
+              "default": false,
+              "description": "In prod launch it as optimized (`-O` flag) and disable __debug__"
+            },
+            "test": {
+              "type": "boolean",
+              "default": false,
+              "description": "Simply add a `IS_TEST` variable and set it to `1`"
+            },
+            "openapi": {
+              "type": "object",
+              "properties": {
+                "include": {
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Include the openapi definition at /docs"
+                },
+                "servers": {
+                  "type": "object",
+                  "description": "List all the servers to include in openapi",
+                  "patternProperties": {
+                    "^[a-zA-Z0-9._-]+$": {
+                      "type": "string",
+                      "pattern": "^https?://.+"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "properties": {
+            "upgrade-at-start": {
+              "type": "boolean",
+              "default": true,
+              "description": "If set to true, it will execute alembic upgrade head at start"
+            }
+          }
+        },
+        "aws": {
+          "type": "object",
+          "properties": {
+            "endpoint": {
+              "type": ["string", "null"]
+            },
+            "region": { "type": "string", "default": "eu-west-1" },
+            "secrets": {
+              "type": "object",
+              "required": ["database"],
+              "properties": {
+                "database": { "type": "string" }
+              },
+              "additionalProperties": {
+                "patternProperties": {
+                  "^[a-zA-Z0-9._-]+$": { "type": "string" }
+                }
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "endpoint": { "type": "string" }
+            },
+            "required": ["endpoint"]
+          },
+          "then": { "required": ["region"] }
+        },
+        "security": {
+          "type": "object",
+          "required": ["provider"],
+          "properties": {
+            "provider": {
+              "type": "string",
+              "enum": [
+                "jwt",
+                "cognito",
+                "auth0",
+                "firebase",
+                "keycloak",
+                "ldap"
+              ]
+            },
+            "endpoint": {
+              "type": ["string", "null"]
+            },
+            "cognito-pool-id": { "type": ["string", "null"] }
+          },
+
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "provider": { "const": "cognito" }
+                },
+                "required": ["provider"]
+              },
+              "then": { "required": ["cognito-pool-id"] }
+            },
+            {
+              "if": {
+                "properties": {
+                  "provider": { "const": "ldap" }
+                },
+                "required": ["provider"]
+              },
+              "then": { "required": ["endpoint"] }
+            }
+          ]
+        },
+        "secrets": {
+          "type": "object",
+          "uniqueItems": true,
+          "patternProperties": {
+            "^[a-zA-Z0-9._-]+$": {
+              "patternProperties": {
+                "^[a-zA-Z0-9._-]+$": {
+                  "type": "string",
+                  "uniqueItems": true
+                }
+              }
+            }
+          }
+        },
+        "rabbit": {
+          "type": "object",
+          "required": ["host"],
+          "properties": {
+            "host": { "type": "string" },
+            "port": { "type": "integer" }
+          }
+        }
+      }
+    }
+  }
+}
