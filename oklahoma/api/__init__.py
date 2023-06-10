@@ -21,9 +21,11 @@ def get_app() -> FastAPI:
         environ.cwd,
     )
     # Load all the routes
+    environ.log.info("Loading routes")
     _rl.load_routes()
     for _route in _rl.routes:
         app.include_router(_route)
+    environ.log.info("Routes loaded")
     # Finished loading routes
     return app
 

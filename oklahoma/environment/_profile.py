@@ -20,6 +20,18 @@ class SecurityEnum(str, Enum):
     ldap = "ldap"
 
 
+class LogLevelEnum(str, Enum):
+    debug = "debug"
+    info = "info"
+    warning = "warning"
+    error = "error"
+
+
+class LogSizeEnum(str, Enum):
+    kb = "kb"
+    mb = "mb"
+
+
 class Docker(BaseModel):
     up: bool = False
     down: bool = False
@@ -69,6 +81,26 @@ class Rabbit(BaseModel):
     port: int = 5672
 
 
+class LogRotation(BaseModel):
+    size: int = 1
+    unit: LogSizeEnum = LogSizeEnum.mb
+    keep: int = 10
+
+
+class Cloudwatch(BaseModel):
+    stream: str | None = None
+    retention: int | None = 7
+    use: bool = False
+
+
+class Log(BaseModel):
+    folder: str = "logs"
+    file: str | None = None
+    level: LogLevelEnum = LogLevelEnum.info
+    rotation: LogRotation = LogRotation()
+    cloudwatch: Cloudwatch = Cloudwatch()
+
+
 class Profile(BaseModel):
     app: App = App()
     database: Database = Database()  # type: ignore
@@ -76,3 +108,4 @@ class Profile(BaseModel):
     secrets: dict[str, dict[str, str]] = {}
     security: Security = Security()  # type: ignore
     rabbit: Rabbit = Rabbit()
+    log: Log = Log()

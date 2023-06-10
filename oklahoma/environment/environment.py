@@ -3,6 +3,7 @@ from contextlib import suppress
 from typing import overload
 from ..utils import Singleton
 from ..exceptions import ProfileNotFoundError
+from ..logger import OKLogger
 from ._load_yaml import _load_yaml_profile, Profile
 
 
@@ -13,6 +14,7 @@ class Env(metaclass=Singleton):
     _loaded: bool
     _current_index: int
     _profile_obj: Profile | None
+    _logger: OKLogger
 
     def __init__(
         self,
@@ -20,6 +22,7 @@ class Env(metaclass=Singleton):
     ) -> None:
         self._current_index = 0
         self._profile_obj = None
+        self._logger = OKLogger(self)
         if no_error is True:
             self._profile = ""
             self._cwd = getcwd()
@@ -47,6 +50,7 @@ class Env(metaclass=Singleton):
             self._cwd,
             self._profile,
         )
+        self._logger.__reload__()
 
     def refresh(self) -> None:
         """Refresh the AWS secrets and load into the environment"""
@@ -61,6 +65,10 @@ class Env(metaclass=Singleton):
         if self._profile_obj is None:
             raise ProfileNotFoundError("The profile has not been loaded yet")
         return self._profile_obj
+
+    @property
+    def log(self) -> OKLogger:
+        return self._logger
 
     @property
     def cwd(self) -> str:

@@ -225,6 +225,71 @@
               "description": "RabbitMQ port"
             }
           }
+        },
+        "log": {
+          "type": "object",
+          "properties": {
+            "folder": {
+              "type": "string",
+              "default": "logs",
+              "description": "Log folder"
+            },
+            "file": {
+              "type": ["string", "null"],
+              "default": null,
+              "description": "Name of the log file (the default is the app name)"
+            },
+            "level": {
+              "type": "string",
+              "enum": ["debug", "info", "warning", "error"],
+              "default": "info",
+              "description": "Log level"
+            },
+            "rotation": {
+              "type": "object",
+              "description": "How to handle log rotation",
+              "required": ["size", "unit"],
+              "properties": {
+                "size": {
+                  "type": "integer",
+                  "default": 1,
+                  "description": "Size of KB or MB"
+                },
+                "unit": {
+                  "type": "string",
+                  "enum": ["kb", "mb"],
+                  "default": "mb",
+                  "description": "Unit (kb or mb)"
+                },
+                "keep": {
+                  "type": "integer",
+                  "description": "How many to keep",
+                  "default": 10
+                }
+              }
+            },
+            "cloudwatch": {
+              "type": "object",
+              "required": ["retention"],
+              "properties": {
+                "stream": {
+                  "type": ["string", "null"],
+                  "description": "Cloudwatch log stream",
+                  "default": null
+                },
+                "use": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "If you want to use cloudwatch, set this to true"
+                },
+                "retention": {
+                  "type": ["integer", "null"],
+                  "default": 7,
+                  "description": "Retention days"
+                }
+              }
+            }
+          }
         }
       }
     }

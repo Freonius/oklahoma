@@ -180,3 +180,4 @@ pyrightconfig.json
 alembic
 alembic.ini
 *.pyi
+logs
