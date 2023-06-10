@@ -3,6 +3,7 @@ from argparse import ArgumentParser, Namespace
 
 
 def cli():
+    """Command line interface for Oklahoma"""
     parser: ArgumentParser = ArgumentParser(
         "Oklahoma!",
         description="Program to run a FastAPI app easily",
