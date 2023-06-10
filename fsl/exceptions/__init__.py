@@ -2,7 +2,11 @@ class FSLException(Exception):
     pass
 
 
-class ApiLoadingException(FSLException):
+class ModuleLoadingError(FSLException):
+    ...
+
+
+class ApiLoadingError(FSLException):
     pass
 
 
