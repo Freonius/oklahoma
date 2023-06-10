@@ -68,6 +68,11 @@ class Env(metaclass=Singleton):
         return self._cwd
 
     @property
+    def module(self) -> str:
+        """The name of the module to load"""
+        return self.get("OK_MODULE", "src")
+
+    @property
     def db_uri(self) -> str:
         """The connection string"""
         raise NotImplementedError()
