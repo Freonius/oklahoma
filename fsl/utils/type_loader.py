@@ -124,6 +124,17 @@ def load_types(
     ...
 
 
+@overload
+def load_types(
+    find_type: Type[T],
+    *,
+    instance: Literal[False],
+    cwd: str | None,
+    folder_name: str,
+) -> list[Type[T]]:
+    ...
+
+
 def load_types(
     find_type: Type[T],
     *,
