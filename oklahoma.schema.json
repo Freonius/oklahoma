@@ -90,14 +90,28 @@
               "type": "boolean",
               "default": true,
               "description": "If set to true, it will execute alembic upgrade head at start"
+            },
+            "host": { "type": ["string", "null"], "default": "localhost" },
+            "port": { "type": ["integer", "null"], "default": 5432 },
+            "database": { "type": ["string", "null"], "default": "db" },
+            "user": { "type": ["string", "null"], "default": "dbuser" },
+            "password": { "type": ["string", "null"], "default": "robinhood" },
+            "engine": {
+              "type": ["string", "null"],
+              "enum": ["postgresql", "mysql"],
+              "default": "postgresql"
             }
           }
         },
         "aws": {
           "type": "object",
+          "required": ["secrets"],
+          "description": "Options for AWS",
           "properties": {
             "endpoint": {
-              "type": ["string", "null"]
+              "type": ["string", "null"],
+              "default": null,
+              "description": "If you want to use localstack, set this variable"
             },
             "region": { "type": "string", "default": "eu-west-1" },
             "secrets": {
@@ -134,12 +148,20 @@
                 "firebase",
                 "keycloak",
                 "ldap"
-              ]
+              ],
+              "default": "jwt",
+              "description": "The authentication provider to use (You may also use the others, but this will be the default)"
             },
             "endpoint": {
-              "type": ["string", "null"]
+              "type": ["string", "null"],
+              "default": null,
+              "description": "Endpoint for ldap or keycloak"
             },
-            "cognito-pool-id": { "type": ["string", "null"] }
+            "cognito-pool-id": {
+              "type": ["string", "null"],
+              "default": null,
+              "description": "The cognito pool id. If you use secrets for this variable, call it COGNITO_POOL_ID and leave this to null, but specify it"
+            }
           },
 
           "allOf": [
@@ -160,12 +182,22 @@
                 "required": ["provider"]
               },
               "then": { "required": ["endpoint"] }
+            },
+            {
+              "if": {
+                "properties": {
+                  "provider": { "const": "keycloak" }
+                },
+                "required": ["provider"]
+              },
+              "then": { "required": ["endpoint"] }
             }
           ]
         },
         "secrets": {
           "type": "object",
           "uniqueItems": true,
+          "description": "List of secrets to load at start if you se localstack (for the database options use the database section)",
           "patternProperties": {
             "^[a-zA-Z0-9._-]+$": {
               "patternProperties": {
@@ -180,9 +212,18 @@
         "rabbit": {
           "type": "object",
           "required": ["host"],
+          "description": "Options for RabbitMQ",
           "properties": {
-            "host": { "type": "string", "default": "localhost" },
-            "port": { "type": "integer", "default": 5672 }
+            "host": {
+              "type": "string",
+              "default": "localhost",
+              "description": "RabbitMQ host"
+            },
+            "port": {
+              "type": "integer",
+              "default": 5672,
+              "description": "RabbitMQ port"
+            }
           }
         }
       }
