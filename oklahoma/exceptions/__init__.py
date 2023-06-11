@@ -1,28 +1,31 @@
 class OKException(Exception):
-    pass
+    """Base exception for Oklahoma"""
 
 
 class ModuleLoadingError(OKException):
-    ...
+    """Could not load the desired module"""
 
 
 class ProfileNotFoundError(OKException):
-    ...
+    """The profile was not found"""
 
 
 class ApiLoadingError(OKException):
-    pass
+    """Could not load FastAPI"""
 
 
 class SessionError(OKException):
-    pass
+    """There are some problems with \
+        the session"""
 
 
 class AlembicException(OKException):
-    pass
+    """Could not launch alembic"""
 
 
 class ShellError(OKException):
+    """Could not execute command"""
+
     _cmd: str
     _err: str
     _ret: int
@@ -34,3 +37,19 @@ class ShellError(OKException):
         self._err = err
         self._ret = ret
         self._out = out
+
+    def __str__(self) -> str:
+        return f"""COMMAND: {self._cmd}
+
+{'=' * 20}
+
+RETURN CODE: {self._ret}
+
+{'=' * 20}
+
+STDOUT: {self._out}
+
+{'=' * 20}
+
+STDERR: {self._err}
+"""

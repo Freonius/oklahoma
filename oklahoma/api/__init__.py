@@ -35,7 +35,12 @@ def get_app() -> FastAPI:
         tags=["healthcheck"],
         summary="An endpoint to invoke for the healthcheck",
     )
-    async def healtcheck():
+    async def healtcheck() -> Response:
+        """Perform an healthcheck
+
+        Returns:
+            Response: Empty response
+        """
         return Response(
             "",
             200,

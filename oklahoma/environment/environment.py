@@ -8,6 +8,8 @@ from ._load_yaml import _load_yaml_profile, Profile
 
 
 class Env(metaclass=Singleton):
+    """Environment variables and profile"""
+
     _data: dict[str, str]
     _profile: str
     _cwd: str
@@ -69,6 +71,7 @@ class Env(metaclass=Singleton):
 
     @property
     def log(self) -> OKLogger:
+        """The logger"""
         return self._logger
 
     @property
@@ -108,7 +111,7 @@ class Env(metaclass=Singleton):
             return False
         return other in self._data
 
-    def __iter__(self):
+    def __iter__(self) -> "Env":
         self._current_index = 0
         return self
 

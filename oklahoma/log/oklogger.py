@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 filterwarnings("ignore")
 
 
+# pylint: disable=too-many-instance-attributes
 class OKLogger(Logger, metaclass=Singleton):
     """Oklahoma Logger"""
 
@@ -71,6 +72,13 @@ class OKLogger(Logger, metaclass=Singleton):
         return level
 
     def __init__(self, environ: "Env | None" = None) -> None:
+        """The Oklahoma Logger (like any other loggers)
+
+        Args:
+            environ (Env | None, optional): Initialize it with\
+                or without Env (it will be reloaded automatically).\
+                      Defaults to None.
+        """
         self._env = environ
         self.name_log_file = ""
         self.frmt = ""
@@ -156,7 +164,7 @@ class OKLogger(Logger, metaclass=Singleton):
         self,
         logtype: str,
         level: int | None = None,
-    ):
+    ) -> None:
         console_logger: StreamHandler | FileHandler | CloudWatchLogHandler
         if logtype == "stream":
             console_logger = StreamHandler(stdout)
@@ -194,3 +202,6 @@ class OKLogger(Logger, metaclass=Singleton):
             console_logger.setLevel(level)
         console_logger.setFormatter(self.formatter)
         self.addHandler(console_logger)
+
+
+# pylint: enable=too-many-instance-attributes

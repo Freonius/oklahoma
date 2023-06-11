@@ -14,7 +14,19 @@ class RoutesLoader(metaclass=Singleton):
     _routes: list[APIRouter]
     _cwd: str
 
-    def __init__(self, folder_name: str = "src", cwd: str | None = None) -> None:
+    def __init__(
+        self,
+        folder_name: str = "src",
+        cwd: str | None = None,
+    ) -> None:
+        """Load all routes
+
+        Args:
+            folder_name (str, optional): The module to load.\
+                  Defaults to "src".
+            cwd (str | None, optional): The current working directory. \
+                Defaults to None.
+        """
         self._folder_name = folder_name
         self._routes = []
         if cwd is None:

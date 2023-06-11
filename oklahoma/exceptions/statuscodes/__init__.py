@@ -1,7 +1,16 @@
-from typing import Any, Dict
 from fastapi.exceptions import HTTPException
 
 
 class NotFound(HTTPException):
-    def __init__(self, headers: Dict[str, Any] | None = None) -> None:
+    """Not found error"""
+
+    def __init__(
+        self,
+        headers: dict[str, object] | None = None,
+    ) -> None:
+        """404: Not found
+
+        Args:
+            headers (dict[str, object] | None, optional): headers. Defaults to None.
+        """
         super().__init__(404, "Not found", headers)

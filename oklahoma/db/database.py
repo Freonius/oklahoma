@@ -1,5 +1,5 @@
 from os import environ
-from typing import Type, Annotated
+from typing import Type, Annotated, Generator
 from types import TracebackType
 from contextlib import suppress
 from fastapi import Depends
@@ -8,6 +8,8 @@ from sqlalchemy.orm import sessionmaker, Session
 
 
 class Database:
+    """Class for database operations"""
+
     _engine: Engine
     _sessionmaker: sessionmaker[Session]
     _session: Session | None
@@ -29,23 +31,25 @@ class Database:
         exctype: Type[BaseException] | None,
         excinst: BaseException | None,
         exctb: TracebackType | None,
-    ):
+    ) -> None:
         if self._session is not None:
             self._session.close()
 
     @property
     def session(self) -> "Session":
+        """Create and get the session"""
         if self._session is not None:
             return self._session
         self._session = self._sessionmaker()
         return self._session
 
     def __del__(self) -> None:
+        """Delete and dispose of the engine"""
         with suppress(Exception):
             self._engine.dispose()
 
 
-def _get_db():
+def _get_db() -> Generator[Session, None, None]:
     with Database() as session:
         yield session
 

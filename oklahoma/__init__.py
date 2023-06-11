@@ -8,7 +8,7 @@ from .cli import cli
 from .log import OKLogger, logger
 
 
-def main():
+def main() -> None:
     """Run the Oklahoma! app"""
     cli()
     environ.__reload__()

@@ -7,6 +7,8 @@ if TYPE_CHECKING is True:
 
 
 class CloudWatchLogs:
+    """Class for CloudWatch logs"""
+
     _group_name: str
     _client: "Client"
 
@@ -16,6 +18,16 @@ class CloudWatchLogs:
         endpoint: str | None = None,
         region: str | None = None,
     ) -> None:
+        """CloudWatchLogs
+
+        Args:
+            group_name (str): Log group name
+            endpoint (str | None, optional): If you want to use\
+                localstack, add this with localstack's\
+                    address. Defaults to None.
+            region (str | None, optional): If you want to specify\
+                the region. Defaults to None.
+        """
         self._group_name = group_name
         self._client = client(
             "logs",

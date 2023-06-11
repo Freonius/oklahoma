@@ -2,7 +2,7 @@ from os import environ
 from argparse import ArgumentParser, Namespace
 
 
-def cli():
+def cli() -> None:
     """Command line interface for Oklahoma"""
     parser: ArgumentParser = ArgumentParser(
         "Oklahoma!",

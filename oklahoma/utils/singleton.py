@@ -1,4 +1,4 @@
-from typing import Type, Any
+from typing import Type
 
 
 class Singleton(type):
@@ -9,9 +9,9 @@ class Singleton(type):
     >>>     pass
     """
 
-    _instances: dict[Type, Any] = {}
+    _instances: dict[Type, object] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: object, **kwargs: object) -> object:
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]

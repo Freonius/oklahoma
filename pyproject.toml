@@ -77,15 +77,13 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 check_untyped_defs = true
 enable_incomplete_feature = ["Unpack"]
+disallow_untyped_defs = true
 
-# for strict mypy: (this is the tricky one :-))
-# disallow_untyped_defs = true
-
-# [tool.pydantic-mypy]
-# init_forbid_extra = true
-# init_typed = true
-# warn_required_dynamic_aliases = true
-# warn_untyped_fields = true
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
 
 [[tool.mypy.overrides]]
 no_implicit_reexport = true
@@ -120,7 +118,12 @@ ignore-nested-classes = true
 ignore-setters = false
 fail-under = 90
 exclude = ["setup.py", "docs", "build", "tests", "alembic", "src"]
-ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*",]
+ignore-regex = [
+    "^get$",
+    "^mock_.*",
+    ".*BaseClass.*",
+    "^load_types$", # TODO: Remove this if overload can be disabled
+]
 verbose = 1
 quiet = false
 whitelist-regex = []
@@ -167,7 +170,7 @@ shell = "pdoc ./oklahoma/ -d google -o docs"
 interpreter = "bash"
 
 [tool.poe.tasks.lint]
-shell = "ruff oklahoma && mypy oklahoma && pylint oklahoma && interrogate || exit 0"
+shell = "ruff oklahoma && mypy oklahoma && pylint oklahoma && interrogate"
 interpreter = "bash"
 
 [tool.poe.tasks.stubs]
