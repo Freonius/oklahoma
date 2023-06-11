@@ -3,7 +3,7 @@ from contextlib import suppress
 from typing import overload
 from ..utils import Singleton
 from ..exceptions import ProfileNotFoundError
-from ..logger import OKLogger
+from ..log import OKLogger
 from ._load_yaml import _load_yaml_profile, Profile
 
 
@@ -50,6 +50,7 @@ class Env(metaclass=Singleton):
             self._cwd,
             self._profile,
         )
+        self._logger.environ = self
         self._logger.__reload__()
 
     def refresh(self) -> None:

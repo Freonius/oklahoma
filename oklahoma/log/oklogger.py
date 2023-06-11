@@ -47,6 +47,10 @@ class OKLogger(Logger, metaclass=Singleton):
             raise ModuleLoadingError("Module not yet loaded")
         return self._env
 
+    @environ.setter
+    def environ(self, val: "Env") -> None:
+        self._env = val
+
     @staticmethod
     def get_docker_id() -> str:
         """Get the first 12 characters of a docker id, or the ip address of the host.

@@ -1,9 +1,7 @@
 from .environment import environ
 from .api import run
 from .cli import cli
-from .logger import OKLogger
-
-logger: OKLogger = OKLogger()
+from .log import OKLogger, logger
 
 
 def main():
