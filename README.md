@@ -11,5 +11,6 @@ TODO: Add codecov
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=freonius_oklahoma&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=freonius_oklahoma)
 ![Docker Image Size](https://img.shields.io/docker/image-size/Freonius/oklahoma)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/oklahoma)
+[![Known Vulnerabilities](https://snyk.io/test/github/Freonius/oklahoma/badge.svg)]
 
 This is a library to make creating, running and managing FastAPI applications easier.
