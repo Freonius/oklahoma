@@ -188,3 +188,4 @@ coverage
 Dockerfile
 docker
 docker-compose.yml
+sonar-project.properties
