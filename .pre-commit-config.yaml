@@ -1,0 +1,82 @@
+fail_fast: true
+
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: poetry run black --diff --check
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: true
+
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: poetry run pylint
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: true
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: poetry run mypy
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: true
+
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: poetry run ruff check
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: true
+
+  - repo: local
+    hooks:
+      - id: interrogate
+        name: interrogate
+        entry: poetry run interrogate
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: poetry run pytest
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: pdoc
+        name: pdoc
+        entry: poetry run pdoc ./oklahoma/ -d google -o docs
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: stubs
+        name: stubs
+        entry: poetry run stubgen oklahoma/ -o .
+        language: system
+        types: [python]
+        require_serial: true
+        pass_filenames: false
