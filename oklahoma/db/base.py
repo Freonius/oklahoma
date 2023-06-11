@@ -1,10 +1,8 @@
 from re import sub
 from datetime import datetime, date
 
-# pylint: disable=no-name-in-module
-from typing import Self, Type  # type: ignore
-
-# pylint: enable=no-name-in-module
+from typing import Type
+from typing_extensions import Self
 from sqlalchemy import (
     Date,
     DateTime,

@@ -24,7 +24,7 @@ T = TypeVar("T")
 def load_types(
     find_type: Type[T],
 ) -> list[T]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -33,7 +33,7 @@ def load_types(
     *,
     cwd: str | None,
 ) -> list[T]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -42,7 +42,7 @@ def load_types(
     *,
     folder_name: str,
 ) -> list[T]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -52,7 +52,7 @@ def load_types(
     cwd: str | None,
     folder_name: str,
 ) -> list[T]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -61,7 +61,7 @@ def load_types(
     *,
     instance: Literal[True],
 ) -> list[T]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -71,7 +71,7 @@ def load_types(
     instance: Literal[True],
     cwd: str | None,
 ) -> list[T]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -81,7 +81,7 @@ def load_types(
     instance: Literal[True],
     folder_name: str,
 ) -> list[T]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -92,7 +92,7 @@ def load_types(
     cwd: str | None,
     folder_name: str,
 ) -> list[T]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -101,7 +101,7 @@ def load_types(
     *,
     instance: Literal[False],
 ) -> list[Type[T]]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -111,7 +111,7 @@ def load_types(
     instance: Literal[False],
     cwd: str | None,
 ) -> list[Type[T]]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -121,7 +121,7 @@ def load_types(
     instance: Literal[False],
     folder_name: str,
 ) -> list[Type[T]]:
-    ...
+    ...  # pragma: no cover
 
 
 @overload
@@ -132,7 +132,7 @@ def load_types(
     cwd: str | None,
     folder_name: str,
 ) -> list[Type[T]]:
-    ...
+    ...  # pragma: no cover
 
 
 def load_types(
@@ -178,7 +178,7 @@ def load_types(
                     mod_var,
                 )
         elif mod is not None:
-            if name.startswith("_") and __debug__ is False:
+            if name.startswith("_") and __debug__ is False:  # pragma: no cover
                 return
             if (
                 instance is False
@@ -200,38 +200,42 @@ def load_types(
     cwd = str(Path(cwd).absolute())
     if not cwd.endswith(sep):
         cwd += sep
-    if isdir(cwd + folder_name):
+    if not isdir(cwd + folder_name):
+        raise ModuleLoadingError(
+            f"Folder '{cwd + folder_name}' not found",
+        )
         # Trying to load files dynamically
-        if isfile(cwd + folder_name + sep + "__init__.py"):
-            # if folder_name in modules:
-            #     return  # It's already loaded
-            relative = str(Path(cwd + folder_name).relative_to(getcwd())).replace(
-                sep, "."
-            )
-            import_module(relative)
-            # Modules loaded correctly
+    if not isfile(cwd + folder_name + sep + "__init__.py"):
+        raise ModuleLoadingError(
+            "No __init__.py in folder",
+        )
+    # if folder_name in modules:
+    #     return  # It's already loaded
+    relative = str(Path(cwd + folder_name).relative_to(getcwd())).replace(sep, ".")
+    import_module(relative)
+    # Modules loaded correctly
 
-            init_py = Path(cwd + folder_name + sep + "__init__.py")
+    init_py = Path(cwd + folder_name + sep + "__init__.py")
 
-            spec = spec_from_file_location(relative, init_py)
-            if spec is None:
-                raise ModuleLoadingError(
-                    "Could not load modules",
-                )
-            mod: ModuleType = module_from_spec(spec)
+    spec = spec_from_file_location(relative, init_py)
+    if spec is None:  # pragma: no cover
+        raise ModuleLoadingError(
+            "Could not load modules",
+        )
+    mod: ModuleType = module_from_spec(spec)
 
-            modules[folder_name] = mod
-            if spec.loader is None:
-                raise ModuleLoadingError(
-                    "Could not load modules",
-                )
-            spec.loader.exec_module(mod)
-            # Load all modules
-            for mod_var in dir(mod):
-                _recursive_load(
-                    getattr(mod, mod_var, None),
-                    mod_var,
-                )
+    modules[folder_name] = mod
+    if spec.loader is None:  # pragma: no cover
+        raise ModuleLoadingError(
+            "Could not load modules",
+        )
+    spec.loader.exec_module(mod)
+    # Load all modules
+    for mod_var in dir(mod):
+        _recursive_load(
+            getattr(mod, mod_var, None),
+            mod_var,
+        )
     if instance is True:
         return _instances
-    return _types
+    return list(set(_t for _t in _types if _t is not find_type))
