@@ -1,3 +1,7 @@
+"""
+.. include:: ../README.md
+"""
+
 from .environment import environ
 from .api import run
 from .cli import cli

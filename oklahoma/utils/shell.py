@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# pylint: enable=missing-function-docstring,missing-module-docstring,missing-class-docstring
 """Module for shell utilities.
 
 """
@@ -36,9 +35,6 @@ class Shell:
     """Class that holds static methods for shell
     utilities.
     """
-
-    def __init__(self) -> None:
-        pass
 
     @staticmethod
     def execute_python_module(
@@ -110,8 +106,8 @@ class Shell:
             ShellReturn: If raise_on_error is True and return code is not 0
 
         Returns:
-            ShellReturn: It will have the output in str format, the error output, and the
-                         return code.
+            ShellReturn: It will have the output in str format,\
+                the error output, and the return code.
         """
         if len(params) > 0:
             cmd = cmd.strip() + " " + join(list(map(quote, list(map(str, params)))))

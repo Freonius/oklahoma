@@ -17,13 +17,10 @@ from os import makedirs, sep
 from contextlib import suppress
 from typing import TYPE_CHECKING
 from warnings import filterwarnings
-from socket import gethostname, gethostbyname
-from subprocess import Popen, PIPE, STDOUT
-from binascii import unhexlify, Error
 from watchtower import CloudWatchLogHandler, DEFAULT_LOG_STREAM_NAME
 from botocore.exceptions import ClientError
 from ..aws import CloudWatchLogs
-from ..utils import Singleton
+from ..utils import Singleton, Shell
 from ..exceptions import ModuleLoadingError
 
 if TYPE_CHECKING:
@@ -33,6 +30,8 @@ filterwarnings("ignore")
 
 
 class OKLogger(Logger, metaclass=Singleton):
+    """Oklahoma Logger"""
+
     log_stream: str | None = None
     name_log_file: str
     frmt: str
@@ -43,6 +42,7 @@ class OKLogger(Logger, metaclass=Singleton):
 
     @property
     def environ(self) -> "Env":
+        """Environment"""
         if self._env is None:
             raise ModuleLoadingError("Module not yet loaded")
         return self._env
@@ -50,27 +50,6 @@ class OKLogger(Logger, metaclass=Singleton):
     @environ.setter
     def environ(self, val: "Env") -> None:
         self._env = val
-
-    @staticmethod
-    def get_docker_id() -> str:
-        """Get the first 12 characters of a docker id, or the ip address of the host.
-
-        Returns:
-            str: docker id or ip address.
-        """
-        try:
-            _proc: Popen
-            with Popen(
-                "echo $(basename $(cat /proc/1/cpuset))",
-                stdout=PIPE,
-                stderr=STDOUT,
-                shell=True,
-            ) as _proc:
-                _container_id: str = _proc.communicate()[0].decode("utf-8").strip()[:12]
-                unhexlify(_container_id)
-                return _container_id  # pragma: no cover
-        except Error:
-            return gethostbyname(gethostname())
 
     def _calc_level(self, _level: str) -> int:
         level: int = DEBUG
@@ -129,7 +108,7 @@ class OKLogger(Logger, metaclass=Singleton):
 
         if frmt is None:
             self.frmt = (
-                f"[{module_name}@{self.get_docker_id()}"
+                f"[{module_name}@{Shell.get_docker_id()}"
                 + ":%(asctime)s:%(module)s:%(lineno)s:%(levelname)s] %(message)s"
             )
         else:

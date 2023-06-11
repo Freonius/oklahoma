@@ -108,7 +108,8 @@ class Base(DeclarativeBase):
         """Update the element.
 
         Args:
-            session (Session | None, optional): The session to use. Defaults to None.
+            session (Session | None, optional): The session to use.\
+                Defaults to None.
             commit (bool, optional): Autocommit. Defaults to True.
             refresh (bool, optional): Autorefresh. Defaults to True.
 
@@ -146,7 +147,8 @@ class Base(DeclarativeBase):
         be used.
 
         Args:
-            session (Session | None, optional): _description_. Defaults to None.
+            session (Session | None, optional): The current session.\
+                  Defaults to None.
             commit (bool, optional): Autocommit. Defaults to True.
             flush (bool, optional): Autoflush. Defaults to True.
 
@@ -167,7 +169,9 @@ class Base(DeclarativeBase):
         if session is None:
             session = Database().session
         if any(getattr(c, "name", None) == "deleted" for c in self.__table__.columns):
+            # pylint: disable=attribute-defined-outside-init
             self.deleted = self._get_deleted_value()
+            # pylint: enable=attribute-defined-outside-init
         else:
             session.delete(self)
         if flush is True:
@@ -178,6 +182,11 @@ class Base(DeclarativeBase):
 
     @staticmethod
     def get_session() -> Session:
+        """Create a session
+
+        Returns:
+            Session: The session
+        """
         return Database().session
 
     @classmethod
@@ -302,7 +311,15 @@ class Base(DeclarativeBase):
             query = query.filter(_filter)
         return query.one_or_none()
 
-    def __to_dict(self, *origins: Type["Base"]) -> dict[str, object]:
+    def __to_dict(
+        self,
+        *origins: Type["Base"],
+    ) -> dict[str, object]:
+        """Transform to dict, checking for infinite recursion
+
+        Returns:
+            dict[str, object]: The dict object
+        """
         out: dict[str, object] = {}
         for key in [getattr(c, "name", None) for c in self.__table__.columns]:
             if not isinstance(key, str):
@@ -363,11 +380,11 @@ class Base(DeclarativeBase):
                 # pylint: disable=no-member
                 if isinstance(col.type, DateTime):
                     return cls.deleted is None  # type: ignore
-                elif isinstance(col.type, Date):
+                if isinstance(col.type, Date):
                     return cls.deleted is None  # type: ignore
-                elif isinstance(col.type, Boolean):
+                if isinstance(col.type, Boolean):
                     return cls.deleted.in_([None, False])  # type: ignore
-                elif isinstance(col.type, Integer):
+                if isinstance(col.type, Integer):
                     return cls.deleted.in_([None, 0])  # type: ignore
                 # pylint: enable=no-member
         return None
@@ -377,11 +394,11 @@ class Base(DeclarativeBase):
             if getattr(col, "name", None) == "deleted":
                 if isinstance(col.type, DateTime):
                     return datetime.now()
-                elif isinstance(col.type, Date):
+                if isinstance(col.type, Date):
                     return date.today()
-                elif isinstance(col.type, Boolean):
+                if isinstance(col.type, Boolean):
                     return True
-                elif isinstance(col.type, Integer):
+                if isinstance(col.type, Integer):
                     return 1
         return None
 

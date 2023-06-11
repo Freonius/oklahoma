@@ -181,3 +181,4 @@ alembic
 alembic.ini
 *.pyi
 logs
+interrogate_badge.svg

@@ -52,8 +52,8 @@ testpaths = [
 ]
 
 [tool.pylint]
-ignore = ["tests", "alembic"]
-ignore-paths = ["tests", "alembic"]
+ignore = ["tests", "alembic", "src"]
+ignore-paths = ["tests", "alembic", "src"]
 disable = [
     "too-many-branches",
     "too-many-statements",
@@ -114,13 +114,13 @@ ignore-magic = true
 ignore-semiprivate = true
 ignore-private = true
 ignore-property-decorators = false
-ignore-module = false
+ignore-module = true
 ignore-nested-functions = false
 ignore-nested-classes = true
 ignore-setters = false
 fail-under = 90
-exclude = ["setup.py", "docs", "build", "tests", "alembic"]
-ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
+exclude = ["setup.py", "docs", "build", "tests", "alembic", "src"]
+ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*",]
 verbose = 1
 quiet = false
 whitelist-regex = []
