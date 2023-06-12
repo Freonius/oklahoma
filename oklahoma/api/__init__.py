@@ -1,3 +1,6 @@
+from os.path import isdir, sep
+from os import makedirs
+from json import dump
 from fastapi import FastAPI, Response
 from uvicorn import run as uvrun
 from ..environment import environ
@@ -36,20 +39,15 @@ def get_app() -> FastAPI:
         summary="An endpoint to invoke for the healthcheck",
     )
     async def healtcheck() -> Response:
-        """Perform an healthcheck
-
-        Returns:
-            Response: Empty response
+        """Perform an healthcheck and returns an\
+        empty response.
         """
-        return Response(
-            "",
-            200,
-        )
+        return Response("", 200, media_type="text/plain")
 
     return app
 
 
-def run() -> None:
+def run(action: str | None = None) -> None:
     """Run the app"""
     app: FastAPI = get_app()
     logger.info(r"   ____  _    _       _                           _ ")
@@ -61,6 +59,16 @@ def run() -> None:
     logger.info(r"                                                    ")
     logger.info(r" ================================================== ")
     logger.info("")
+    logger.info("Saving openapi specifications to ./specs")
+    _specs: str = "." + sep + "specs" + sep
+    if not isdir(_specs):
+        makedirs(_specs)
+    with open(_specs + "openapi.json", "w", encoding="utf-8") as handle:
+        dump(app.openapi(), handle)
+    del _specs
+    if action is not None and action.lower() == "openapi":
+        return
+    logger.info("Openapi specifications saved to ./specs")
     logger.info(f"Running application on port {environ.profile.app.port}")
     uvrun(
         app,
