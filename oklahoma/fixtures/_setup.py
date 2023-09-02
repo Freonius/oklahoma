@@ -3,7 +3,7 @@ from sys import path
 from pathlib import Path
 
 
-def setup_tests_local(
+def setup_tests(
     module: str = "src",
     profile: str = "test",
     cwd: str = ".",
@@ -12,9 +12,3 @@ def setup_tests_local(
     environ["OK_CWD"] = cwd
     environ["OK_MODULE"] = module
     path.append(str(Path(cwd).absolute()))
-
-
-setup_tests_local()
-from oklahoma.fixtures import setup_tests, client
-
-setup_tests()
