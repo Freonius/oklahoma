@@ -57,6 +57,7 @@ class OpenApi(BaseModel):
 
     include: bool = True
     servers: dict[str, str] = {}
+    origins: list[str] = ["*"]
 
 
 class App(BaseModel):

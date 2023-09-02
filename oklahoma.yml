@@ -13,6 +13,9 @@ test:
       include: true
       servers:
         localhost: http://localhost:8000
+      origins:
+        - 'http://localhost'
+        - 'http://localhost:8000'
   database:
     upgrade-at-start: false
   aws:

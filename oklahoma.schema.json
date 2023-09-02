@@ -78,6 +78,13 @@
                       "pattern": "^https?://.+"
                     }
                   }
+                },
+                "origins": {
+                  "type": "array",
+                  "description": "List of origins to include in openapi",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             }
