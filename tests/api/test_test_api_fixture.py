@@ -1,8 +1,11 @@
+from starlette.testclient import TestClient
 from oklahoma.fixtures import APIFixture
 
 
-def test_pytest_is_running():
-    assert True
+def test_pytest_fixture_is_loaded(client):
+    assert isinstance(client, TestClient)
+    resp = client.get("/healthcheck")
+    assert resp.status_code == 200
 
 
 class TestApiV1First(APIFixture):

@@ -1,5 +1,9 @@
 from typing import cast, Iterable, Mapping
+
+# pylint: disable=redefined-builtin
 from re import split, compile, Pattern
+
+# pylint: enable=redefined-builtin
 
 
 try:
@@ -70,6 +74,7 @@ try:
             timeout: TimeoutTypes | UseClientDefault = USE_CLIENT_DEFAULT,
             extensions: dict[str, object] | None = None,
         ) -> "TestResponse":
+            """Send a `GET` request."""
             url = self.__solve_url(url)
             resp = self.api.get(
                 url,
@@ -98,6 +103,7 @@ try:
             timeout: TimeoutTypes | UseClientDefault = USE_CLIENT_DEFAULT,
             extensions: dict[str, object] | None = None,
         ) -> "TestResponse":
+            """Send an `OPTIONS` request."""
             url = self.__solve_url(url)
             resp = self.api.options(
                 url,
@@ -126,6 +132,7 @@ try:
             timeout: TimeoutTypes | UseClientDefault = USE_CLIENT_DEFAULT,
             extensions: dict[str, object] | None = None,
         ) -> "TestResponse":
+            """Send a `HEAD` request."""
             url = self.__solve_url(url)
             resp = self.api.head(
                 url,
@@ -158,6 +165,7 @@ try:
             timeout: TimeoutTypes | UseClientDefault = USE_CLIENT_DEFAULT,
             extensions: dict[str, object] | None = None,
         ) -> "TestResponse":
+            """Send a `POST` request."""
             url = self.__solve_url(url)
             resp = self.api.post(
                 url,
@@ -194,6 +202,7 @@ try:
             timeout: TimeoutTypes | UseClientDefault = USE_CLIENT_DEFAULT,
             extensions: dict[str, object] | None = None,
         ) -> "TestResponse":
+            """Send a `PUT` request."""
             url = self.__solve_url(url)
             resp = self.api.put(
                 url,
@@ -230,6 +239,7 @@ try:
             timeout: TimeoutTypes | UseClientDefault = USE_CLIENT_DEFAULT,
             extensions: dict[str, object] | None = None,
         ) -> "TestResponse":
+            """Send a `PATCH` request."""
             url = self.__solve_url(url)
             resp = self.api.patch(
                 url,
@@ -262,6 +272,7 @@ try:
             timeout: TimeoutTypes | UseClientDefault = USE_CLIENT_DEFAULT,
             extensions: dict[str, object] | None = None,
         ) -> "TestResponse":
+            """Send a `DELETE` request."""
             url = self.__solve_url(url)
             resp = self.api.delete(
                 url,

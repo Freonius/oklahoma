@@ -1,6 +1,6 @@
 from fastapi.routing import APIRouter
 
-route = APIRouter(prefix="/api/t1/second")
+route = APIRouter(prefix="/api/v1/second")
 
 
 @route.get("/")
