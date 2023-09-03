@@ -1,9 +1,8 @@
+from contextlib import suppress
 from enum import Enum
 from re import sub
 from datetime import datetime, date
-from tkinter import NO
-
-from typing import Callable, Sequence, Type, Annotated, cast
+from typing import Callable, Type, Annotated, cast
 from typing_extensions import Self
 from sqlalchemy import (
     Date,
@@ -22,9 +21,10 @@ from sqlalchemy.orm import (
     Query,
     Session,
 )
+from sqlalchemy.orm.exc import UnmappedInstanceError
 
 # pylint: disable=no-name-in-module
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, create_model
 
 # pylint: enable=no-name-in-module
 from fastapi import Depends, HTTPException
@@ -191,10 +191,16 @@ class Base(DeclarativeBase):
         Returns:
             Session: The session
         """
-        _session: Session | None = Session.object_session(cls)
-        if isinstance(_session, Session):
+        _session: Session | None = None
+        with suppress(AttributeError, UnmappedInstanceError):
+            _session = Session.object_session(cls)
+        if _session is not None and isinstance(_session, Session):
             return _session
         return Database().session
+
+    @property
+    def session(self) -> Session:
+        return self.get_session()
 
     @classmethod
     def get(
@@ -413,18 +419,20 @@ class Base(DeclarativeBase):
     def create_pydantic_model(
         cls: Type[Self],
         to_camel_case: bool = False,
+        all_optional: bool = False,
     ) -> Type[BaseModel]:
         columns = cls.__table__.columns
 
         def _camel_case(name: str) -> str:
             return "".join(word.capitalize() for word in name.split("_"))
 
-        class PydanticModel(BaseModel):
-            model_config = ConfigDict(
-                title=cls.__tablename__,
-                alias_generator=_camel_case if to_camel_case else None,
-            )
-
+        # class PydanticModel(BaseModel):
+        model_config = ConfigDict(
+            title=cls.__name__,
+            orm_mode=True,
+            alias_generator=_camel_case if to_camel_case else None,
+        )
+        cols = {}
         for column in columns:
             column_name = getattr(column, "name", None)
             if not isinstance(column_name, str):
@@ -432,7 +440,7 @@ class Base(DeclarativeBase):
             column_type = column.type.python_type
 
             # Add a corresponding field to the Pydantic model
-            setattr(PydanticModel, column_name, column_type)
+            cols[column_name] = (column_type, None if all_optional else ...)
         relationships = cls.__mapper__.relationships
         for relationship in relationships:
             relationship_name = relationship.key
@@ -448,25 +456,45 @@ class Base(DeclarativeBase):
 
                 if is_many_to_one:
                     # Add a corresponding field to the Pydantic model
-                    setattr(PydanticModel, relationship_name, related_model_pydantic)
-                elif is_one_to_many or is_many_to_many:
-                    # Add a corresponding field to the Pydantic model as a list
-                    setattr(
-                        PydanticModel, relationship_name, list[related_model_pydantic]  # type: ignore
+                    cols[relationship_name] = (
+                        related_model_pydantic,
+                        None if all_optional else ...,
                     )
-
-        return PydanticModel
+                    # setattr(PydanticModel, relationship_name, related_model_pydantic)
+                elif is_one_to_many or is_many_to_many:
+                    cols[relationship_name] = (list[related_model_pydantic], None if all_optional else ...)  # type: ignore
+                    # Add a corresponding field to the Pydantic model as a list
+                    # setattr(
+                    #     PydanticModel, relationship_name, list[related_model_pydantic]  # type: ignore
+                    # )
+        # TODO: default values, ignore specific fields
+        return create_model(cls.__name__, **cols)  # type: ignore
 
     @classmethod
     def generate_crud_routes(
         cls,
+        *,
         prefix: str | None = None,
+        schema: Type[BaseModel] | None = None,
         tags: list[str | Enum] | None = None,
         auth: dict[str, tuple[str, ...] | None] | None = None,
-        filter_user: "Callable[[str, Self], bool]" | None = None,
+        filter_user: "Callable[[str, Self], bool] | None" = None,
+        before_insert: Callable[[dict[str, object]], None] | None = None,
+        after_insert: Callable[[Self], None] | None = None,
+        before_update: Callable[[dict[str, object], Self], None] | None = None,
+        after_update: Callable[[Self], None] | None = None,
+        before_delete: Callable[[Self], None] | None = None,
+        after_delete: Callable[[dict[str, object]], None] | None = None,
+        run_background_tasks: bool = False,
+        use_cache: bool = True,
+        to_camel_case: bool = False,
     ) -> APIRouter:
+        # TODO: auth, background_tasks, filters for params, cache, pagination, add params to functions, description
         if prefix is None:
             prefix = "/api/v1/" + cls.__tablename__
+
+        if tags is None:
+            tags = [cls.__tablename__]
 
         def default_filter(user: str, instance: Self) -> bool:
             return True
@@ -489,12 +517,19 @@ class Base(DeclarativeBase):
             prefix=prefix,
             tags=tags,
         )
-        pydantic_model_type: Type[BaseModel] = cls.create_pydantic_model()
-        pydantic_model = Annotated[BaseModel, pydantic_model_type]
+        if schema is None:
+            schema = cls.create_pydantic_model(to_camel_case=to_camel_case)
+        params_schema = cls.create_pydantic_model(
+            all_optional=True,
+            to_camel_case=to_camel_case,
+        )
+        pydantic_model = Annotated[schema, schema]  # type: ignore
+        params_model = Annotated[params_schema, params_schema]  # type: ignore
 
         @router.get("/", response_model=list[pydantic_model])
         def get_all(
             session: Session = Depends(get_db),
+            params: params_model = Depends(),
         ) -> list[dict[str, object]]:
             instances = session.query(cls).all()
             return [instance.to_dict() for instance in instances]
@@ -503,6 +538,7 @@ class Base(DeclarativeBase):
         def get_by_id(
             id: int,
             session: Session = Depends(get_db),
+            params: params_model = Depends(),
         ) -> dict[str, object]:
             instance = cls.get_one(cls.id == id, session)
             if instance is None:
@@ -512,12 +548,17 @@ class Base(DeclarativeBase):
         @router.post("/", response_model=pydantic_model)
         def create(
             data: pydantic_model,
-            session: Session = Depends(get_db),
+            session: Session = Depends(lambda: None),
         ) -> dict[str, object]:
-            instance = cls(**data.dict())
+            d: BaseModel = cast(BaseModel, data)
+            if before_insert is not None:
+                before_insert(d.dict())
+            instance = cls(**d.dict())
             session.add(instance)
             session.commit()
             session.refresh(instance)
+            if after_insert is not None:
+                after_insert(instance)
             return instance.to_dict()
 
         @router.put("/{id}", response_model=pydantic_model)
@@ -526,13 +567,18 @@ class Base(DeclarativeBase):
             data: pydantic_model,
             session: Session = Depends(get_db),
         ) -> dict[str, object]:
+            d: BaseModel = cast(BaseModel, data)
             instance = cls.get_one(cls.id == id, session)
             if instance is None:
                 raise HTTPException(status_code=404, detail="Instance not found")
-            for field, value in data.dict().items():
+            if before_update is not None:
+                before_update(d.dict(), instance)
+            for field, value in d.dict().items():
                 setattr(instance, field, value)
             session.commit()
             session.refresh(instance)
+            if after_update is not None:
+                after_update(instance)
             return instance.to_dict()
 
         @router.delete("/{id}")
@@ -540,11 +586,16 @@ class Base(DeclarativeBase):
             id: int,
             session: Session = Depends(get_db),
         ) -> dict[str, str]:
-            instance = session.query(cls).get(id)
+            instance = cls.get_one(cls.id == id, session)
             if instance is None:
                 raise HTTPException(status_code=404, detail="Instance not found")
+            if before_delete is not None:
+                before_delete(instance)
+            data: dict[str, object] = instance.to_dict()
             session.delete(instance)
             session.commit()
-            return {"message": "Instance deleted successfully"}
+            if after_delete is not None:
+                after_delete(data)
+            return {"message": f"{cls.__name__} deleted successfully"}
 
         return router

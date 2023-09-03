@@ -1,14 +1,17 @@
+from collections.abc import Mapping
 from sys import stdout
 from logging import (
     DEBUG,
     INFO,
     ERROR,
     WARNING,
+    LogRecord,
     Logger,
     StreamHandler,
     Formatter,
     FileHandler,
 )
+from pprint import pformat
 from logging.handlers import RotatingFileHandler
 from re import sub
 from pathlib import Path
@@ -202,6 +205,45 @@ class OKLogger(Logger, metaclass=Singleton):
             console_logger.setLevel(level)
         console_logger.setFormatter(self.formatter)
         self.addHandler(console_logger)
+
+    def makeRecord(
+        self,
+        name: str,
+        level: int,
+        fn: str,
+        lno: int,
+        msg: object,
+        args: object,
+        exc_info: object | None,
+        func: str | None = None,
+        extra: Mapping[str, object] | None = None,
+        sinfo: str | None = None,
+    ) -> LogRecord:
+        if msg is not None and not isinstance(msg, str):
+            if extra is None:
+                extra = {}
+            if "type" not in extra:
+                extra["type"] = str(type(msg))  # type: ignore
+        if msg is not None and isinstance(msg, (dict, list)):
+            msg = pformat(
+                msg,
+                indent=2,
+                compact=False,
+            )
+        elif msg is None:
+            msg = "<None>"
+        return super().makeRecord(
+            name,
+            level,
+            fn,
+            lno,
+            msg,
+            args,  # type: ignore
+            exc_info,  # type: ignore
+            func,
+            extra,
+            sinfo,
+        )
 
 
 # pylint: enable=too-many-instance-attributes
