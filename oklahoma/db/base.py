@@ -1,7 +1,9 @@
+from enum import Enum
 from re import sub
 from datetime import datetime, date
+from tkinter import NO
 
-from typing import Type
+from typing import Callable, Sequence, Type, Annotated, cast
 from typing_extensions import Self
 from sqlalchemy import (
     Date,
@@ -22,12 +24,14 @@ from sqlalchemy.orm import (
 )
 
 # pylint: disable=no-name-in-module
-# from pydantic import BaseModel, create_model
+from pydantic import BaseModel, ConfigDict
 
 # pylint: enable=no-name-in-module
+from fastapi import Depends, HTTPException
+from fastapi.routing import APIRouter
 from inflect import engine
 from ..exceptions import SessionError
-from .database import Database
+from .database import Database, _get_db as get_db
 
 inf_eng: engine = engine()
 
@@ -50,8 +54,8 @@ class Base(DeclarativeBase):
     id: Mapped[int] = mapped_column(
         primary_key=True,
     )
-    created: Mapped[datetime] = mapped_column(server_default=now())
-    updated: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(server_default=now())
+    updated_at: Mapped[datetime] = mapped_column(
         server_default=now(),
         server_onupdate=now(),  # type: ignore
     )
@@ -180,13 +184,16 @@ class Base(DeclarativeBase):
             session.commit()
         return session
 
-    @staticmethod
-    def get_session() -> Session:
+    @classmethod
+    def get_session(cls) -> Session:
         """Create a session
 
         Returns:
             Session: The session
         """
+        _session: Session | None = Session.object_session(cls)
+        if isinstance(_session, Session):
+            return _session
         return Database().session
 
     @classmethod
@@ -402,40 +409,142 @@ class Base(DeclarativeBase):
                     return 1
         return None
 
-    # @classmethod
-    # def get_out_model(cls) -> Type[BaseModel]:
-    #     _def: dict[str, object] = {}
-    #     for col in cls.__table__.columns:
-    #         _name = getattr(col, "name", None)
-    #         if (
-    #             not isinstance(_name, str)
-    #             or _name in ("updated", "created", "deleted")
-    #             or _name in cls.__exclude_fields__
-    #         ):
-    #             continue
-    #         has_default: bool = False
-    #         try:
-    #             _ = col.default
-    #             has_default = True
-    #         except AttributeError:
-    #             has_default = False
-    #         default: Any = ...
-    #         if has_default is True:
-    #             default = getattr(getattr(col, "default", None), "arg", None)
-    #         t: Type | None = None
-    #         if isinstance(col.type, DateTime):
-    #             t = datetime
-    #         elif isinstance(col.type, Date):
-    #             t = date
-    #         elif isinstance(col.type, Boolean):
-    #             t = bool
-    #         elif isinstance(col.type, Integer):
-    #             t = int
-    #         elif isinstance(col.type, Float):
-    #             t = float
-    #         elif isinstance(col.type, (String, Text)):
-    #             t = str
-    #         if t is None:
-    #             continue
-    #         _def[_name] = (t, default)
-    #     return create_model("Out" + cls.__name__ + "Schema", **_def)
+    @classmethod
+    def create_pydantic_model(
+        cls: Type[Self],
+        to_camel_case: bool = False,
+    ) -> Type[BaseModel]:
+        columns = cls.__table__.columns
+
+        def _camel_case(name: str) -> str:
+            return "".join(word.capitalize() for word in name.split("_"))
+
+        class PydanticModel(BaseModel):
+            model_config = ConfigDict(
+                title=cls.__tablename__,
+                alias_generator=_camel_case if to_camel_case else None,
+            )
+
+        for column in columns:
+            column_name = getattr(column, "name", None)
+            if not isinstance(column_name, str):
+                continue
+            column_type = column.type.python_type
+
+            # Add a corresponding field to the Pydantic model
+            setattr(PydanticModel, column_name, column_type)
+        relationships = cls.__mapper__.relationships
+        for relationship in relationships:
+            relationship_name = relationship.key
+            related_model = relationship.mapper.class_
+            if isinstance(related_model, Base):
+                # Create Pydantic model for the related model
+                related_model_pydantic = related_model.create_pydantic_model()
+
+                # Fetch relationship details
+                is_many_to_one = relationship.direction.name == "MANYTOONE"
+                is_one_to_many = relationship.direction.name == "ONETOMANY"
+                is_many_to_many = relationship.direction.name == "MANYTOMANY"
+
+                if is_many_to_one:
+                    # Add a corresponding field to the Pydantic model
+                    setattr(PydanticModel, relationship_name, related_model_pydantic)
+                elif is_one_to_many or is_many_to_many:
+                    # Add a corresponding field to the Pydantic model as a list
+                    setattr(
+                        PydanticModel, relationship_name, list[related_model_pydantic]  # type: ignore
+                    )
+
+        return PydanticModel
+
+    @classmethod
+    def generate_crud_routes(
+        cls,
+        prefix: str | None = None,
+        tags: list[str | Enum] | None = None,
+        auth: dict[str, tuple[str, ...] | None] | None = None,
+        filter_user: "Callable[[str, Self], bool]" | None = None,
+    ) -> APIRouter:
+        if prefix is None:
+            prefix = "/api/v1/" + cls.__tablename__
+
+        def default_filter(user: str, instance: Self) -> bool:
+            return True
+
+        if filter_user is None:
+            filter_user = default_filter
+
+        if auth is None:
+            auth = {
+                "get": None,
+                "post": None,
+                "put": None,
+                "delete": None,
+            }
+        auth = {k.lower().strip(): v for k, v in auth.items()}
+        for _k in ("get", "post", "put", "delete"):
+            if _k not in auth:
+                auth[_k] = None
+        router = APIRouter(
+            prefix=prefix,
+            tags=tags,
+        )
+        pydantic_model_type: Type[BaseModel] = cls.create_pydantic_model()
+        pydantic_model = Annotated[BaseModel, pydantic_model_type]
+
+        @router.get("/", response_model=list[pydantic_model])
+        def get_all(
+            session: Session = Depends(get_db),
+        ) -> list[dict[str, object]]:
+            instances = session.query(cls).all()
+            return [instance.to_dict() for instance in instances]
+
+        @router.get("/{id}", response_model=pydantic_model)
+        def get_by_id(
+            id: int,
+            session: Session = Depends(get_db),
+        ) -> dict[str, object]:
+            instance = cls.get_one(cls.id == id, session)
+            if instance is None:
+                raise HTTPException(status_code=404, detail="Instance not found")
+            return instance.to_dict()
+
+        @router.post("/", response_model=pydantic_model)
+        def create(
+            data: pydantic_model,
+            session: Session = Depends(get_db),
+        ) -> dict[str, object]:
+            instance = cls(**data.dict())
+            session.add(instance)
+            session.commit()
+            session.refresh(instance)
+            return instance.to_dict()
+
+        @router.put("/{id}", response_model=pydantic_model)
+        def update(
+            id: int,
+            data: pydantic_model,
+            session: Session = Depends(get_db),
+        ) -> dict[str, object]:
+            instance = cls.get_one(cls.id == id, session)
+            if instance is None:
+                raise HTTPException(status_code=404, detail="Instance not found")
+            for field, value in data.dict().items():
+                setattr(instance, field, value)
+            session.commit()
+            session.refresh(instance)
+            return instance.to_dict()
+
+        @router.delete("/{id}")
+        def delete(
+            id: int,
+            session: Session = Depends(get_db),
+        ) -> dict[str, str]:
+            instance = session.query(cls).get(id)
+            if instance is None:
+                raise HTTPException(status_code=404, detail="Instance not found")
+            session.delete(instance)
+            session.commit()
+            return {"message": "Instance deleted successfully"}
+
+        return router
