@@ -1,4 +1,4 @@
-FROM python:3.11-alpine AS stage
+FROM python:3.13.0a3-alpine AS stage
 
 ENV PYTHONBUFFERED=1 \
     TZ=Europe/Rome \
@@ -11,7 +11,7 @@ COPY ./pyproject.toml ./poetry.toml ./poetry.lock /app/
 RUN pip install poetry && \
     poetry install --only main --no-root
 
-FROM python:3.11-alpine AS build
+FROM python:3.13.0a3-alpine AS build
 
 ENV PYTHONBUFFERED=1 \
     TZ=Europe/Rome \
