@@ -120,6 +120,11 @@
               "default": null,
               "description": "If you want to use localstack, set this variable"
             },
+            "cognito_endpoint": {
+              "type": ["string", "null"],
+              "default": null,
+              "description": "If you want to use a local cognito, set this variable"
+            },
             "region": { "type": "string", "default": "eu-west-1" },
             "secrets": {
               "type": "object",
@@ -168,6 +173,11 @@
               "type": ["string", "null"],
               "default": null,
               "description": "The cognito pool id. If you use secrets for this variable, call it COGNITO_POOL_ID and leave this to null, but specify it"
+            },
+            "cognito-client-id": {
+              "type": ["string", "null"],
+              "default": null,
+              "description": "The cognito client id. If you use secrets for this variable, call it COGNITO_CLIENT_ID and leave this to null, but specify it"
             }
           },
 
@@ -179,7 +189,7 @@
                 },
                 "required": ["provider"]
               },
-              "then": { "required": ["cognito-pool-id"] }
+              "then": { "required": ["cognito-pool-id", "cognito-client-id"] }
             },
             {
               "if": {

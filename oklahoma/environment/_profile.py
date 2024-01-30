@@ -90,6 +90,7 @@ class Aws(BaseModel):
     secrets: dict[str, str] = {}
     endpoint: str | None = None
     region: str | None = None
+    cognito_endpoint: str | None = None
 
 
 class Security(BaseModel):
@@ -97,6 +98,7 @@ class Security(BaseModel):
 
     provider: SecurityEnum = SecurityEnum.jwt
     cognito_pool_id: str | None = Field(None, alias="cognito-pool-id")
+    cognito_client_id: str | None = Field(None, alias="cognito-client-id")
     endpoint: str | None = None
 
 
